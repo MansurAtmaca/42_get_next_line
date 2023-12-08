@@ -1,17 +1,29 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: matmaca <matmaca@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/12/08 14:24:11 by matmaca           #+#    #+#             */
+/*   Updated: 2023/12/08 14:24:15 by matmaca          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 5
+#  define BUFFER_SIZE 3
 # endif
 
-# include <unistd.h>
-# include <fcntl.h>
 # include <stdlib.h>
 
-char	*ft_strjoin(char  *s1, char  *s2);
-char	*ft_strchr(const char *str, int c);
-int		ft_strlen(char *str);
 char	*get_next_line(int fd);
+size_t	ft_strlen(const char *s);
+char	*ft_strdup(const char *buffer);
+char	*ft_strjoin(char const *stack, char const *buffer);
+char	*ft_substr(char const *stack, unsigned int start, size_t len);
+void	*ft_free_stack(char **stack, int create_line);
 
 #endif

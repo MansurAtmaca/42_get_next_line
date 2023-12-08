@@ -1,115 +1,123 @@
-#include <stdio.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: matmaca <matmaca@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/12/08 14:29:00 by matmaca           #+#    #+#             */
+/*   Updated: 2023/12/08 15:56:42 by matmaca          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "get_next_line.h"
+#include <unistd.h>
 
-static char *parse(char *s, char c)
+char	*ft_copy_stack(char *stack, char *buffer)
 {
-	char *str;
-	int i;
-	int j;
+	int		i;
+	char	*newstack;
+
+	i = 0;
+	if (!stack && buffer)
+	{
+		newstack = ft_strdup(buffer);
+		if (!newstack)
+			return (NULL);
+		return (newstack);
+	}
+	newstack = ft_strjoin(stack, buffer);
+	ft_free_stack(&stack, 0);
+	return (newstack);
+}
+
+int	newline_check(char *stack)
+{
+	int	i;
+
+	i = 0;
+	if (!stack)
+		return (0);
+	while (stack[i])
+	{
+		if (stack[i] == '\n')
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+ char	*gets_line(char *stack)
+{
+	int		i;
+	int		j;
+	char	*newline;
 
 	i = 0;
 	j = 0;
-	while (s[i] && s[i] != c)
+	if (!stack)
+		return (NULL);
+	while (stack[i] != '\n')
 		i++;
-	if (!s[i])
+	newline = (char *)malloc(sizeof(char) * (i + 2));
+	if (!newline)
+		return (NULL);
+	while (j < (i + 1))
 	{
-		free(s);
-		return (NULL);
+		newline[j] = stack[j];
+		j++;
 	}
-	str = (char *)malloc((ft_strlen(s) - i) + 1);
-	if (!str)
-		return (NULL);
-	i++;
-	while (s[i])
-		str[j++] = s[i++];
-	str[j] = '\0';
-	free(s);
-	return (str);
-}
-char *next_line(char *list)
-{
-	char *str;
-	int i;
-
-	i = 0;
-	if(!list[i])
-		return (NULL);
-	while (list[i] != '\0' && list[i] != '\n')
-		i++;
-	str = (char *)malloc(sizeof(char) * (i + 2));
-	if (!str)
-		return (NULL);
-	i = 0;
-	while (list[i] && list[i] != '\n')
-	{
-		str[i] = list[i];
-		i++;
-	}
-	if (list[i] == '\n')
-	{
-		str[i] = list[i];
-		i++;
-	}
-	str[i] = '\0';
-	return (str);
+	newline[j] = '\0';
+	return (newline);
 }
 
-char *create_list(char *list, int fd)
+char	*new_line(char *stack)
 {
-	char *new_list;
-	int read_bytes;
+	int		i;
+	char	*newstack;
 
-	new_list = (char *)malloc(sizeof(char) * BUFFER_SIZE + 1);
-	if (!new_list)
+	i = 0;
+	if (!stack)
 		return (NULL);
-	read_bytes = 1;
-	while (!ft_strchr(list, '\n') && read_bytes != 0)
+	while (stack[i] != '\n')
+		i++;
+	if (stack[i + 1] == '\0')
+		return (ft_free_stack(&stack, 0));
+	newstack = ft_substr(stack, i + 1, ft_strlen(stack));
+	if (!newstack)
 	{
-		read_bytes = read(fd, new_list, BUFFER_SIZE);
-		if (read_bytes == -1)
+		ft_free_stack(&stack, 0);
+		return (NULL);
+	}
+	ft_free_stack(&stack, 0);
+	return (newstack);
+}
+
+char	*get_next_line(int fd)
+{
+	long		read_bytes;
+	char		*line;
+	static char	*stack = NULL;
+	char		buffer[BUFFER_SIZE + 1];
+
+	line = 0;
+	read_bytes = BUFFER_SIZE;
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (ft_free_stack(&stack, 0));
+	while (read_bytes > 0)
+	{
+		read_bytes = read(fd, buffer, BUFFER_SIZE);
+		if ((read_bytes <= 0 && !stack) || read_bytes == -1)
+			return (ft_free_stack(&stack, 0));
+		buffer[read_bytes] = '\0';
+		stack = ft_copy_stack(stack, buffer);
+		if (newline_check(stack))
 		{
-			free(new_list);
-			return (NULL);
+			line = gets_line(stack);
+			if (!line)
+				return (ft_free_stack(&stack, 0));
+			return (stack = new_line(stack), line);
 		}
-		new_list[read_bytes] = '\0';
-		list = ft_strjoin(list, new_list);
 	}
-	free(new_list);
-	return (list);
-}
-
-char *get_next_line(int fd)
-{
-	char *line;
-	static char *list;
-	if (fd <  0 || BUFFER_SIZE <= 0)
-		return (NULL);
-	list = create_list(list, fd);
-
-	if (list)
-	{
-		line = next_line(list);
-		list = parse(list, '\n');
-		return (line);
-	}
-	return (NULL);
-}
-
- int main()
-{
-	char *next_line;
-	int fd;
-	int count = 0;
-	fd = open("example.txt", O_RDWR);
-	if (fd < 0)
-		printf("Error file");
-
-	next_line = get_next_line(fd);
-	printf("sonuc -> %s\n", next_line);
-	next_line = get_next_line(fd);
-	printf("sonuc -> %s\n", next_line);
-	next_line = get_next_line(fd);
-	printf("sonuc -> %s\n", next_line);
-
+	return (ft_free_stack(&stack, 1));
 }
