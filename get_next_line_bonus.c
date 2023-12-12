@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: matmaca <matmaca@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/12/08 14:29:00 by matmaca           #+#    #+#             */
-/*   Updated: 2023/12/12 17:09:49 by matmaca          ###   ########.fr       */
+/*   Created: 2023/12/12 16:50:14 by matmaca           #+#    #+#             */
+/*   Updated: 2023/12/12 17:58:03 by matmaca          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,27 +97,27 @@ char	*get_next_line(int fd)
 {
 	long		read_bytes;
 	char		*line;
-	static char	*stack = NULL;
+	static char	*stack [1024];
 	char		buffer[BUFFER_SIZE + 1];
 
 	line = 0;
 	read_bytes = BUFFER_SIZE;
 	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (ft_free_stack(&stack, 0));
+		return (ft_free_stack(&stack[fd], 0));
 	while (read_bytes > 0)
 	{
 		read_bytes = read(fd, buffer, BUFFER_SIZE);
-		if ((read_bytes <= 0 && !stack) || read_bytes == -1)
-			return (ft_free_stack(&stack, 0));
+		if ((read_bytes <= 0 && !stack[fd]) || read_bytes == -1)
+			return (ft_free_stack(&stack[fd], 0));
 		buffer[read_bytes] = '\0';
-		stack = ft_copy_stack(stack, buffer);
-		if (newline_check(stack))
+		stack[fd] = ft_copy_stack(stack[fd], buffer);
+		if (newline_check(stack[fd]))
 		{
-			line = gets_line(stack);
+			line = gets_line(stack[fd]);
 			if (!line)
-				return (ft_free_stack(&stack, 0));
-			return (stack = new_line(stack), line);
+				return (ft_free_stack(&stack[fd], 0));
+			return (stack[fd] = new_line(stack[fd]), line);
 		}
 	}
-	return (ft_free_stack(&stack, 1));
+	return (ft_free_stack(&stack[fd], 1));
 }
